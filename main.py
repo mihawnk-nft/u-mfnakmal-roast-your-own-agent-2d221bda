@@ -15,6 +15,7 @@ Setup short, punchline at the end.
 
 import os
 import sys
+import unicodedata
 
 ROAST = (
     "My agent Muse never sleeps, never eats, never takes a day off "
@@ -35,6 +36,15 @@ def main() -> int:
         return 1
     if "\n" in text or "\r" in text:
         print("entry must be a single line", file=sys.stderr)
+        return 1
+    # A roast the judge reads must be printable text: no control
+    # characters, and at least one letter so it cannot be punctuation
+    # alone.
+    if any(unicodedata.category(ch).startswith("C") for ch in text):
+        print("entry must not contain control characters", file=sys.stderr)
+        return 1
+    if not any(ch.isalpha() for ch in text):
+        print("entry must contain at least one letter", file=sys.stderr)
         return 1
     os.makedirs(os.path.dirname(OUTPUT_PATH), exist_ok=True)
     with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
